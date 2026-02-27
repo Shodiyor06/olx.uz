@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<title>Kirish</title>
+<style>
+body { font-family: Arial; background:#f5f7fb; display:flex; justify-content:center; align-items:center; height:100vh; }
+.card { background:white; padding:30px; width:350px; border-radius:12px; box-shadow:0 5px 20px rgba(0,0,0,.1); text-align:center; }
+input,button{width:100%; padding:12px; margin-top:15px;}
+button{background:#2979ff;color:white;border:none;}
+.error{color:red;margin-top:10px;}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+<h2>Kirish</h2>
+<p>@Mznxusjxbzuahbot ga kirib kod oling</p>
+
+<input id="code" placeholder="Login kodi">
+<button onclick="login()">Kirish</button>
+<div class="error" id="error"></div>
+</div>
+
+<script>
+async function login() {
+    const code = document.getElementById("code").value;
+    const error = document.getElementById("error");
+    error.innerText = "";
+
+    const res = await fetch("http://127.0.0.1:8000/api/v1/telegram/verify-code/", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ code })
+    });
+
+    const data = await res.json();
+
+    if(res.ok){
+        localStorage.setItem("access", data.access);
+        window.location.href = "dashboard.html";
+    } else {
+        error.innerText = data.error;
+    }
+}
+</script>
+
+</body>
+</html>

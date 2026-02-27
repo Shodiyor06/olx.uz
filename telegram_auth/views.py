@@ -4,6 +4,7 @@ from rest_framework.views import APIView
 from users.models import User
 
 from .models import TelegramLoginCode
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 class TelegramBotLoginView(APIView):
@@ -28,7 +29,6 @@ class TelegramBotLoginView(APIView):
         return Response({"code": login_code.code})
 
 
-from rest_framework_simplejwt.tokens import RefreshToken
 
 
 class VerifyTelegramCodeView(APIView):

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Dashboard</title>
+</head>
+<body>
+
+<h2>Dashboard</h2>
+<button onclick="loadProfile()">Profilni ko‘rish</button>
+
+<pre id="profile"></pre>
+
+<script>
+async function loadProfile(){
+    const token = localStorage.getItem("access");
+
+    const res = await fetch("http://127.0.0.1:8000/api/v1/users/me/", {
+        headers:{ "Authorization": "Bearer " + token }
+    });
+
+    const data = await res.json();
+    document.getElementById("profile").innerText = JSON.stringify(data,null,2);
+}
+</script>
+
+</body>
+</html>
