@@ -18,7 +18,7 @@ TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 BACKEND_URL = "http://127.0.0.1:8000/api/v1/telegram/bot-login/"
 
 
-# START COMMAND
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     button = KeyboardButton("📱 Send Contact", request_contact=True)
 
@@ -32,7 +32,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-# HANDLE CONTACT
+
 async def contact_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     contact = update.message.contact
 
@@ -58,7 +58,7 @@ async def contact_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Server error. Try again later.")
 
 
-# MAIN
+
 def main():
     app = ApplicationBuilder().token(TOKEN).build()
 

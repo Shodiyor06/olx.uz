@@ -125,19 +125,19 @@ class ProductListView(generics.ListAPIView):
 
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
 
-    # FILTER
+
     filterset_fields = ["category", "region"]
 
-    # SEARCH
+
     search_fields = ["title", "description"]
 
-    # SORT
+
     ordering_fields = ["price", "created_at", "view_count"]
 
     def get_queryset(self):
         queryset = Product.objects.filter(status="active")
 
-        # Price range filter
+
         min_price = self.request.GET.get("min_price")
         max_price = self.request.GET.get("max_price")
 

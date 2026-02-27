@@ -23,7 +23,7 @@ class CreateOrderView(APIView):
 
         product = get_object_or_404(Product, id=product_id)
 
-        # 🔥 MUHIM TEKSHIRUV
+
         if not product.price:
             return Response({"error": "Product price not set"}, status=400)
 
@@ -66,7 +66,7 @@ class CompleteOrderView(APIView):
         order.status = "done"
         order.save()
 
-        # Product sotilgan bo‘ladi
+
         order.product.status = "sold"
         order.product.save()
 
@@ -83,14 +83,14 @@ class CreateReviewView(APIView):
 
         order = get_object_or_404(Order, id=order_id)
 
-        # 🔥 tekshiruvlar
+
         if order.buyer != request.user:
             return Response({"error": "Not your order"}, status=403)
 
         if order.status != "done":
             return Response({"error": "Order not completed"}, status=400)
 
-        # review yaratish
+
         review = Review.objects.create(
             order=order,
             reviewer=request.user,
@@ -99,7 +99,7 @@ class CreateReviewView(APIView):
             comment=comment,
         )
 
-        # ⭐ seller ratingni yangilaymiz
+
         reviews = Review.objects.filter(seller=order.seller)
         avg_rating = sum(r.rating for r in reviews) / reviews.count()
 
@@ -145,17 +145,17 @@ class OrderDetailView(RetrieveUpdateAPIView):
         user = self.request.user
         new_status = self.request.data.get("status")
 
-        # Seller status o‘zgartiradi
+
         if user == order.seller:
             if new_status in ["agreed", "cancelled"]:
                 serializer.save(status=new_status)
 
-        # Buyer sotib oldi
+
         elif user == order.buyer:
             if new_status == "done":
                 serializer.save(status="done")
 
-                # product sotildi
+
                 order.product.status = "sold"
                 order.product.save()
 

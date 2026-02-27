@@ -17,14 +17,14 @@ class TelegramLoginView(APIView):
     def post(self, request):
         data = request.data.copy()
 
-        # 1️⃣ Hash tekshiramiz
+
         TEST_MODE = True
 
         if not TEST_MODE:
             if not check_telegram_auth(data):
                 return Response({"error": "Invalid Telegram login"}, status=403)
 
-        # 2️⃣ User yaratamiz yoki topamiz
+
         user, created = User.objects.get_or_create(
             telegram_id=data["id"],
             defaults={
@@ -34,7 +34,7 @@ class TelegramLoginView(APIView):
             },
         )
 
-        # 3️⃣ JWT token beramiz
+
         refresh = RefreshToken.for_user(user)
 
         return Response(
