@@ -7,6 +7,8 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.core.cache import cache
+
 
 from users.permissions import IsSeller
 
@@ -57,12 +59,16 @@ class ProductListView(generics.ListAPIView):
 
 
 class ProductDetailView(APIView):
-
     def get(self, request, pk):
         product = get_object_or_404(Product, pk=pk, status="active")
 
-        product.view_count += 1
-        product.save()
+        user_id = request.user.id if request.user.is_authenticated else request.META.get("REMOTE_ADDR")
+        cache_key = f"viewed_product_{pk}_user_{user_id}"
+
+        if not cache.get(cache_key):
+            product.view_count += 1
+            product.save()
+            cache.set(cache_key, True, timeout=86400)
 
         serializer = ProductSerializer(product)
         return Response(serializer.data)
@@ -116,11 +122,13 @@ class AddFavoriteView(APIView):
 
     def post(self, request):
         product_id = request.data.get("product_id")
-
+        product = get_object_or_404(Product, id=product_id)
         favorite, created = Favorite.objects.get_or_create(
             user=request.user, product_id=product_id
         )
-
+        if created:  # ✅ faqat yangi qo'shilganda +1
+            product.favorite_count += 1
+            product.save()
         return Response({"message": "Added to favorites"})
 
 
@@ -137,11 +145,14 @@ class RemoveFavoriteView(APIView):
 
     def delete(self, request, pk):
         fav = get_object_or_404(Favorite, pk=pk, user=request.user)
+        
+        product = fav.product   
         fav.delete()
+        
+        product.favorite_count = max(0, product.favorite_count - 1) 
+        product.save()
 
         return Response({"message": "Removed"})
-
-
 
 
 class CategoryListView(ListAPIView):

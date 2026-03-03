@@ -14,7 +14,7 @@ def check_telegram_auth(data: dict) -> bool:
 
     secret_key = hashlib.sha256(settings.TELEGRAM_BOT_TOKEN.encode()).digest()
 
-    calculated_hash = hmac.new(
+    calculated_hash = hmac.HMAC(
         secret_key, data_check_string.encode(), hashlib.sha256
     ).hexdigest()
 

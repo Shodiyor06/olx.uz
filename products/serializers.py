@@ -44,5 +44,7 @@ class CategorySerializer(serializers.ModelSerializer):
         ]
 
     def get_children(self, obj):
-        children = Category.objects.filter(parent=obj)
+        children = Category.objects.filter(parent=obj, is_active=True)
+        if not children.exists():
+            return []  
         return CategorySerializer(children, many=True).data

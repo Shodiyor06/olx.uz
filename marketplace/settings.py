@@ -15,10 +15,10 @@ TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
 
 
-SECRET_KEY = "django-insecure-&u7!%8_$i+yg3i-4k8xn5w762doi7uo)qp1tcpt2j2-gtf$cmn"
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 
-DEBUG = True
+DEBUG = os.getenv("DEBUG")
 
 ALLOWED_HOSTS = []
 
@@ -70,6 +70,13 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     'corsheaders.middleware.CorsMiddleware',
 ]
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        
+    }
+}
 
 ROOT_URLCONF = "marketplace.urls"
 

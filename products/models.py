@@ -5,6 +5,7 @@ from django.utils.text import slugify
 
 class Category(models.Model):
     name = models.CharField(max_length=200)
+    favorite_count = models.PositiveIntegerField(default=0)
     slug = models.SlugField(max_length=200, unique=True)
     parent = models.ForeignKey("self", null=True, blank=True, on_delete=models.CASCADE)
     description = models.TextField(blank=True)

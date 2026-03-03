@@ -58,20 +58,20 @@ class AgreeOrderView(APIView):
 
 
 class CompleteOrderView(APIView):
-    permission_classes = [IsAuthenticated]
-
     def post(self, request, pk):
         order = get_object_or_404(Order, pk=pk, buyer=request.user)
 
         order.status = "done"
         order.save()
 
-
         order.product.status = "sold"
         order.product.save()
 
-        return Response({"message": "Order completed"})
+        seller_profile = order.seller.sellerprofile
+        seller_profile.total_sales += 1
+        seller_profile.save()
 
+        return Response({"message": "Order completed"})
 
 class CreateReviewView(APIView):
     permission_classes = [IsAuthenticated]
@@ -83,13 +83,22 @@ class CreateReviewView(APIView):
 
         order = get_object_or_404(Order, id=order_id)
 
-
         if order.buyer != request.user:
             return Response({"error": "Not your order"}, status=403)
 
         if order.status != "done":
             return Response({"error": "Order not completed"}, status=400)
 
+        if Review.objects.filter(order=order).exists():
+            return Response({"error": "Review already exists"}, status=400)
+
+        try:
+            rating = int(rating)
+        except (TypeError, ValueError):
+            return Response({"error": "Rating must be a number"}, status=400)
+
+        if not (1 <= rating <= 5):
+            return Response({"error": "Rating must be between 1 and 5"}, status=400)
 
         review = Review.objects.create(
             order=order,
@@ -99,16 +108,15 @@ class CreateReviewView(APIView):
             comment=comment,
         )
 
-
         reviews = Review.objects.filter(seller=order.seller)
         avg_rating = sum(r.rating for r in reviews) / reviews.count()
 
         seller_profile = order.seller.sellerprofile
-        seller_profile.rating = avg_rating
+        seller_profile.rating = round(avg_rating, 2)  
         seller_profile.save()
 
-        return Response({"message": "Review added"})
-
+        return Response({"message": "Review added"}, status=201)
+    
 
 class OrderListCreateView(ListCreateAPIView):
     serializer_class = OrderSerializer

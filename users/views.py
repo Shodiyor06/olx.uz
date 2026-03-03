@@ -16,17 +16,13 @@ class TelegramLoginView(APIView):
 
     def post(self, request):
         data = request.data.copy()
-
-
-        TEST_MODE = True
-
-        if not TEST_MODE:
-            if not check_telegram_auth(data):
-                return Response({"error": "Invalid Telegram login"}, status=403)
+        
+        if not check_telegram_auth(data):
+            return Response({"error": "Invalid Telegram login"}, status=403)
 
 
         user, created = User.objects.get_or_create(
-            telegram_id=data["id"],
+            telegram_id=data["telegram_id"],
             defaults={
                 "username": data.get("username"),
                 "first_name": data.get("first_name"),
