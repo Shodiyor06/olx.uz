@@ -15,7 +15,7 @@ urlpatterns = [
     path("orders/", OrderListCreateView.as_view()),
     path("orders/create/", CreateOrderView.as_view()),
     path("orders/<int:pk>/", OrderDetailView.as_view()),
-
+    
     path("orders/<int:pk>/agree/", AgreeOrderView.as_view()),
     path("orders/<int:pk>/complete/", CompleteOrderView.as_view()),
 

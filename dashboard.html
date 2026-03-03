@@ -1,25 +1,172 @@
 <!DOCTYPE html>
-<html>
+<html lang="uz">
 <head>
+<meta charset="UTF-8">
 <title>Dashboard</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: #f5f7fb;
+    padding: 30px;
+}
+.card {
+    background: white;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+button {
+    padding: 10px 15px;
+    margin: 5px 5px 5px 0;
+    background: #2979ff;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+input {
+    padding: 8px;
+    margin: 5px 0;
+    width: 100%;
+}
+pre {
+    background: #eee;
+    padding: 10px;
+}
+</style>
 </head>
 <body>
 
 <h2>Dashboard</h2>
-<button onclick="loadProfile()">Profilni ko‘rish</button>
 
-<pre id="profile"></pre>
+<div class="card">
+    <button onclick="loadProfile()">Profil</button>
+    <button onclick="upgradeSeller()">Seller bo‘lish</button>
+    <button onclick="loadMyProducts()">Mening productlarim</button>
+    <button onclick="loadOrders()">Orderlar</button>
+    <button onclick="logout()">Chiqish</button>
+</div>
+
+<div class="card">
+    <h3>Product qo‘shish</h3>
+
+    <input id="title" placeholder="Nomi">
+    <input id="description" placeholder="Tavsif">
+    <input id="price" placeholder="Narxi">
+    <input id="category" placeholder="Kategoriya ID">
+    <input type="file" id="image">
+
+    <button onclick="createProduct()">Product qo‘shish</button>
+</div>
+
+<div class="card">
+    <h3>Natija</h3>
+    <pre id="output"></pre>
+</div>
 
 <script>
-async function loadProfile(){
-    const token = localStorage.getItem("access");
+const API = "http://127.0.0.1:8000/api/v1/";
+const token = localStorage.getItem("access");
 
-    const res = await fetch("http://127.0.0.1:8000/api/v1/users/me/", {
+if(!token){
+    window.location.href = "login.html";
+}
+
+// PROFIL
+async function loadProfile(){
+    const res = await fetch(API + "users/me/", {
         headers:{ "Authorization": "Bearer " + token }
     });
-
     const data = await res.json();
-    document.getElementById("profile").innerText = JSON.stringify(data,null,2);
+    document.getElementById("output").innerText = JSON.stringify(data,null,2);
+}
+
+// SELLER BO‘LISH
+async function upgradeSeller(){
+    const res = await fetch(API + "upgrade-to-seller/", {
+        method:"POST",
+        headers:{
+            "Authorization": "Bearer " + token,
+            "Content-Type":"application/json"
+        },
+        body: JSON.stringify({
+            shop_name:"My Shop",
+            region:"Samarqand",
+            district:"Samarqand"
+        })
+    });
+    const data = await res.json();
+    document.getElementById("output").innerText = JSON.stringify(data,null,2);
+}
+
+// PRODUCT QO‘SHISH
+async function createProduct(){
+
+    const res = await fetch(API + "products/create/", {
+        method:"POST",
+        headers:{
+            "Authorization":"Bearer " + token,
+            "Content-Type":"application/json"
+        },
+        body: JSON.stringify({
+            title: document.getElementById("title").value,
+            description: document.getElementById("description").value,
+            price: document.getElementById("price").value,
+            category: document.getElementById("category").value,
+            condition:"yangi",
+            price_type:"qat'iy",
+            region:"Samarqand",
+            district:"Samarqand"
+        })
+    });
+
+    const product = await res.json();
+
+    if(!res.ok){
+        document.getElementById("output").innerText = JSON.stringify(product,null,2);
+        return;
+    }
+
+    // RASM
+    const fileInput = document.getElementById("image");
+    if(fileInput.files.length > 0){
+        const formData = new FormData();
+        formData.append("image", fileInput.files[0]);
+
+        await fetch(API + `products/${product.id}/upload-image/`, {
+            method:"POST",
+            headers:{ "Authorization":"Bearer " + token },
+            body: formData
+        });
+    }
+
+    document.getElementById("output").innerText = "Product yaratildi!";
+}
+
+// MENING PRODUCTLARIM
+async function loadMyProducts(){
+    const res = await fetch(API + "products/my/", {
+        headers:{ "Authorization":"Bearer " + token }
+    });
+    const data = await res.json();
+    document.getElementById("output").innerText = JSON.stringify(data,null,2);
+}
+
+// ORDERLAR
+async function loadOrders(){
+    const res = await fetch(API + "orders/", {
+        headers:{ "Authorization":"Bearer " + token }
+    });
+    const data = await res.json();
+    document.getElementById("output").innerText = JSON.stringify(data,null,2);
+}
+
+// LOGOUT
+function logout(){
+    localStorage.removeItem("access");
+    localStorage.removeItem("refresh");
+    window.location.href = "login.html";
 }
 </script>
 

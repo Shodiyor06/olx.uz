@@ -26,12 +26,34 @@ class ProductCreateView(generics.CreateAPIView):
     def perform_create(self, serializer):
         serializer.save(seller=self.request.user)
 
-
 class ProductListView(generics.ListAPIView):
     serializer_class = ProductSerializer
 
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+
+
+    filterset_fields = ["category", "region"]
+
+
+    search_fields = ["title", "description"]
+
+
+    ordering_fields = ["price", "created_at", "view_count"]
+
     def get_queryset(self):
-        return Product.objects.filter(status="active")
+        queryset = Product.objects.filter(status="active")
+
+
+        min_price = self.request.GET.get("min_price")
+        max_price = self.request.GET.get("max_price")
+
+        if min_price:
+            queryset = queryset.filter(price__gte=min_price)
+
+        if max_price:
+            queryset = queryset.filter(price__lte=max_price)
+
+        return queryset
 
 
 class ProductDetailView(APIView):
@@ -120,34 +142,6 @@ class RemoveFavoriteView(APIView):
         return Response({"message": "Removed"})
 
 
-class ProductListView(generics.ListAPIView):
-    serializer_class = ProductSerializer
-
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-
-
-    filterset_fields = ["category", "region"]
-
-
-    search_fields = ["title", "description"]
-
-
-    ordering_fields = ["price", "created_at", "view_count"]
-
-    def get_queryset(self):
-        queryset = Product.objects.filter(status="active")
-
-
-        min_price = self.request.GET.get("min_price")
-        max_price = self.request.GET.get("max_price")
-
-        if min_price:
-            queryset = queryset.filter(price__gte=min_price)
-
-        if max_price:
-            queryset = queryset.filter(price__lte=max_price)
-
-        return queryset
 
 
 class CategoryListView(ListAPIView):
@@ -170,3 +164,12 @@ class CategoryProductsView(ListAPIView):
         category = Category.objects.get(slug=slug)
 
         return Product.objects.filter(category=category, status="active")
+    
+
+
+class MyProductsView(ListAPIView):
+    serializer_class = ProductSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Product.objects.filter(seller=self.request.user)

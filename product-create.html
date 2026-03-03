@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Product yaratish</title>
+</head>
+<body>
+
+<h2>Product qo‘shish</h2>
+
+<input id="title" placeholder="Nomi">
+<input id="price" placeholder="Narxi">
+<input type="file" id="image">
+
+<button onclick="createProduct()">Yaratish</button>
+
+<script>
+async function createProduct() {
+
+    const token = localStorage.getItem("access");
+
+    // 1️⃣ Avval product yaratamiz
+    const productRes = await fetch("http://127.0.0.1:8000/api/v1/products/create/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify({
+            title: document.getElementById("title").value,
+            price: document.getElementById("price").value,
+            category: 1
+        })
+    });
+
+    const productData = await productRes.json();
+
+    if(!productRes.ok){
+        alert("Product yaratilmadi");
+        return;
+    }
+
+    const productId = productData.id;
+
+    // 2️⃣ Keyin rasm yuklaymiz
+    const fileInput = document.getElementById("image");
+    const formData = new FormData();
+    formData.append("image", fileInput.files[0]);
+    formData.append("is_main", true);
+
+    const imageRes = await fetch(`http://127.0.0.1:8000/api/v1/products/${productId}/upload-image/`, {
+        method: "POST",
+        headers: {
+            "Authorization": "Bearer " + token
+        },
+        body: formData
+    });
+
+    if(imageRes.ok){
+        alert("Product va rasm yuklandi!");
+    } else {
+        alert("Rasm yuklanmadi");
+    }
+}
+</script>
+
+</body>
+</html>
