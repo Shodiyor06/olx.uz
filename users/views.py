@@ -42,17 +42,15 @@ class TelegramLoginView(APIView):
         )
 
 
+
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
-
+    
     def post(self, request):
         refresh_token = request.data.get("refresh")
-
         token = RefreshToken(refresh_token)
-        token.blacklist()
-
-        return Response({"message": "Logged out"})
-
+        token.blacklist() 
+        return Response({"message": "Logout successful"})
 
 class UserMeView(RetrieveUpdateAPIView):
     serializer_class = UserMeSerializer
