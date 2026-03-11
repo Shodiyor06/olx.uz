@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <title>Dashboard</title>
 
-
 <style>
 body {
     font-family: Arial;
@@ -43,14 +42,23 @@ pre {
 
 <div class="card">
     <button onclick="loadProfile()">Profil</button>
-    <button onclick="upgradeSeller()">Seller bo‘lish</button>
+    <button onclick="toggleSellerForm()">Seller bo'lish</button>
     <button onclick="loadMyProducts()">Mening productlarim</button>
     <button onclick="loadOrders()">Orderlar</button>
     <button onclick="logout()">Chiqish</button>
 </div>
 
+<!-- SELLER FORM -->
+<div class="card" id="sellerForm" style="display:none">
+    <h3>Seller bo'lish</h3>
+    <input id="shop_name" placeholder="Do'kon nomi (unikal bo'lishi kerak)">
+    <input id="seller_region" placeholder="Viloyat (masalan: Samarqand)">
+    <input id="seller_district" placeholder="Tuman (masalan: Samarqand)">
+    <button onclick="upgradeSeller()">Tasdiqlash</button>
+</div>
+
 <div class="card">
-    <h3>Product qo‘shish</h3>
+    <h3>Product qo'shish</h3>
 
     <input id="title" placeholder="Nomi">
     <input id="description" placeholder="Tavsif">
@@ -58,7 +66,7 @@ pre {
     <input id="category" placeholder="Kategoriya ID">
     <input type="file" id="image">
 
-    <button onclick="createProduct()">Product qo‘shish</button>
+    <button onclick="createProduct()">Product qo'shish</button>
 </div>
 
 <div class="card">
@@ -74,34 +82,54 @@ if(!token){
     window.location.href = "login.html";
 }
 
+// SELLER FORM TOGGLE
+function toggleSellerForm(){
+    const form = document.getElementById("sellerForm");
+    form.style.display = form.style.display === "none" ? "block" : "none";
+}
+
 // PROFIL
 async function loadProfile(){
     const res = await fetch(API + "users/me/", {
         headers:{ "Authorization": "Bearer " + token }
     });
     const data = await res.json();
-    document.getElementById("output").innerText = JSON.stringify(data,null,2);
+    document.getElementById("output").innerText = JSON.stringify(data, null, 2);
 }
 
-// SELLER BO‘LISH
+// SELLER BO'LISH
 async function upgradeSeller(){
+    const shop_name = document.getElementById("shop_name").value.trim();
+    const region = document.getElementById("seller_region").value.trim();
+    const district = document.getElementById("seller_district").value.trim();
+
+    if(!shop_name || !region || !district){
+        document.getElementById("output").innerText = "Iltimos, barcha maydonlarni to'ldiring!";
+        return;
+    }
+
     const res = await fetch(API + "upgrade-to-seller/", {
-        method:"POST",
+        method: "POST",
         headers:{
             "Authorization": "Bearer " + token,
-            "Content-Type":"application/json"
+            "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-            shop_name:"My Shop",
-            region:"Samarqand",
-            district:"Samarqand"
-        })
+        body: JSON.stringify({ shop_name, region, district })
     });
+
     const data = await res.json();
-    document.getElementById("output").innerText = JSON.stringify(data,null,2);
+
+    if(!res.ok){
+        // Xato xabarini ko'rsatish (masalan: duplicate shop_name)
+        document.getElementById("output").innerText = "Xato: " + JSON.stringify(data, null, 2);
+        return;
+    }
+
+    document.getElementById("output").innerText = "Seller bo'ldingiz!\n" + JSON.stringify(data, null, 2);
+    document.getElementById("sellerForm").style.display = "none";
 }
 
-// PRODUCT QO‘SHISH
+// PRODUCT QO'SHISH
 async function createProduct(){
 
     const res = await fetch(API + "products/create/", {
@@ -125,7 +153,7 @@ async function createProduct(){
     const product = await res.json();
 
     if(!res.ok){
-        document.getElementById("output").innerText = JSON.stringify(product,null,2);
+        document.getElementById("output").innerText = JSON.stringify(product, null, 2);
         return;
     }
 
@@ -151,7 +179,7 @@ async function loadMyProducts(){
         headers:{ "Authorization":"Bearer " + token }
     });
     const data = await res.json();
-    document.getElementById("output").innerText = JSON.stringify(data,null,2);
+    document.getElementById("output").innerText = JSON.stringify(data, null, 2);
 }
 
 // ORDERLAR
@@ -160,7 +188,7 @@ async function loadOrders(){
         headers:{ "Authorization":"Bearer " + token }
     });
     const data = await res.json();
-    document.getElementById("output").innerText = JSON.stringify(data,null,2);
+    document.getElementById("output").innerText = JSON.stringify(data, null, 2);
 }
 
 // LOGOUT
